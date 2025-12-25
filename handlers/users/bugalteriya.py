@@ -6,6 +6,7 @@ from aiogram.dispatcher.storage import FSMContext
 from states.main import mainstate
 from handlers.users.functions import generate_accounting_pdf
 from keyboards.inline.main import keyboard
+import time, os
 
 
 
@@ -43,7 +44,7 @@ async def confirm_send_pdf(callback_query: types.CallbackQuery):
     await db.delete_users()
     
 
-    import time, os
+    
 
     try:
         if os.path.exists(file_path):
