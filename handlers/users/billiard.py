@@ -72,26 +72,26 @@ async def my_account(message: types.Message, state: FSMContext):
         return
 
     for table in active_tables:
-        # 🟦 Stol vaqti bo‘yicha hisob
+        
         minutes, table_price = calculate_play_time(
-            table[2],  # start_time
+            table[2],  
             now,
-            table[5]   # soatlik narx
+            table[5]  
         )
 
-        # 🟨 Shu stolga tegishli productlar
+    
         products_text = ""
         products_total_price = 0
 
         for prod in sold_products:
-            if prod[2] == table[1]:  # table_name mos bo‘lsa
+            if prod[2] == table[1]: 
                 products_text += f"\n• {prod[4]} ta {prod[1]}"
                 products_total_price += int(prod[5])
 
-        # 🟩 Jami narx
+
         total_price = int(table_price) + products_total_price
 
-        # 🟪 Agar product bo‘lmasa
+    
         if not products_text:
             products_text = "\n• Mahsulot olinmagan"
 

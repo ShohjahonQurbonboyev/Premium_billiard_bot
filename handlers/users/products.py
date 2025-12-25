@@ -53,7 +53,7 @@ async def add_or_cancel_callback(call: types.CallbackQuery, state: FSMContext):
         await call.answer("Bekor qilindi ❌")
         return
 
-    # Mahsulot qo'shish
+
     product_name = call.data.replace("addprod_", "")
     data = await state.get_data()
     table = data["table"]
@@ -69,7 +69,7 @@ async def add_or_cancel_callback(call: types.CallbackQuery, state: FSMContext):
         product_name=product_name
     )
 
-    # 🟩 Agar stolga hali qo'shilmagan bo'lsa
+
     if product is None:
         await db.add_product(
             product_name=product_name,
@@ -83,8 +83,6 @@ async def add_or_cancel_callback(call: types.CallbackQuery, state: FSMContext):
         await db.update_product_price(str(int(product[5]) + sell_price), product[0])
     
 
-
-    # 🟥 Nakladnoydan kamaytirish
     await db.update_nakladnoy_have(naklad[2] - 1, product_name)
 
     await call.answer(f"➕ {product_name} qo‘shildi")

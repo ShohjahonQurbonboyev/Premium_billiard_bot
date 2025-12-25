@@ -73,7 +73,6 @@ async def my_account(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=process.nakladnoy_sell_price)
 async def my_account(message: types.Message, state: FSMContext):
-    old_damage = await db.select_user(telegram_id=message.from_user.id)
     number = message.text
     if number.isnumeric():
         data = await state.get_data()

@@ -68,10 +68,9 @@ def sell_nakladnoy_keyboard(products, sold_products=None):
     sold_products = sold_products or {}
     buttons = []
 
-    # Mahsulotlar tugmalari
     for p in products:
-        name = p[1]  # mahsulot nomi indeksi 1 deb faraz qilamiz
-        available_qty = p[2]  # ombordagi mavjud soni
+        name = p[1]  
+        available_qty = p[2]  
         sold_qty = sold_products.get(name, 0)
         text = f"{name} ({sold_qty}/{available_qty})"
         buttons.append(types.InlineKeyboardButton(text=text, callback_data=f"sellprod_{name}"))
@@ -79,7 +78,7 @@ def sell_nakladnoy_keyboard(products, sold_products=None):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(*buttons)
 
-    # Oxirgi qator: Sotish va Bekor qilish
+
     keyboard.add(
         types.InlineKeyboardButton(text="✅ Sotish", callback_data="finish_sell"),
         types.InlineKeyboardButton(text="❌ Bekor qilish", callback_data="cancel_sell")

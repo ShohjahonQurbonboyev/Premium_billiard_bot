@@ -14,9 +14,9 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     if callback_query.data == "confirm":
 
         lines = callback_query.message.text.splitlines()
-        table_number = lines[0].split(" ")[0]  # stol raqami
+        table_number = lines[0].split(" ")[0]  
 
-        # 🔹 DB dan maʼlumotlar
+        
         table = await db.select_billiard(table_name=table_number)
         user = await db.select_user(telegram_id=telegram_id)
         nakladnoy = await db.select_all_nakladnoy()
@@ -25,7 +25,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
             await callback_query.answer("Bu xizmat allaqachon yopilgan", show_alert=True)
             return
 
-        # 🟦 STOL NARXI
+        
         playing_minutes, table_cost = calculate_play_time(
             table[2],
             now_tashkent().strftime("%Y-%m-%d %H:%M:%S"),
@@ -33,47 +33,46 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
         )
         table_cost = int(table_cost)
 
-        # 🟨 PRODUCTLAR NARXI
+
         products = await db.select_products_by_table(table_number)
         product_cost = sum(int(p[5]) for p in products) if products else 0
 
         benefit = calculate_benefit(products, nakladnoy)
 
-        # 🧮 OLD SUMMALAR
         old_table_price = int(user[4])
         old_product_price = int(user[5])
         old_all_price = int(user[6])
         old_benefit =  user[9]
 
-        # 🧾 YANGI HISOB
+
         new_table_price = old_table_price + table_cost
         new_product_price = old_product_price + product_cost
         new_all_price = old_all_price + table_cost + product_cost
         new_benefit = old_benefit + table_cost + benefit
 
-        # 🟩 USERS UPDATE
+
         await db.update_user_table(str(new_table_price), telegram_id)
         await db.update_user_product(str(new_product_price), telegram_id)
         await db.update_user_all_price(str(new_all_price), telegram_id)
         await db.update_user_benefit(new_benefit, telegram_id)
 
-            # 🧮 DAMAGE HISOBI
+
         damage = 0
 
         for p in products:
-            product_name = p[1]     # product_name
-            qty = int(p[4])         # product_number
+            product_name = p[1] 
+            qty = int(p[4])        
             damage += await calculate_damage_for_add(product_name, qty)
 
-        # 🔄 USER DAMAGE UPDATE
+
         user = await db.select_user(telegram_id=telegram_id)
-        old_damage = int(user[10]) if user[10] else 0   # damage ustuni indexini moslang
+        old_damage = int(user[10]) if user[10] else 0  
         new_damage = int(old_damage) + int(damage)
         await db.update_user_damage(new_damage, telegram_id)
 
 
 
-        # 🟥 STOL VA PRODUCTLARNI TOZALAYMIZ
+    
         await db.delete_billiard(table_number, telegram_id)
         for p in products:
             await db.delete_product(table_number, p[1])

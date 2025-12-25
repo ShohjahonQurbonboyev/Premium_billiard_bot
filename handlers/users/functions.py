@@ -9,13 +9,6 @@ from loader import db
 
 
 
-
-
-
-
-
-
-
 def now_tashkent():
     return datetime.now(ZoneInfo("Asia/Tashkent"))
 
@@ -39,13 +32,13 @@ def calculate_benefit(products, nakladnoy):
     total_benefit = 0
 
     for prod in products:
-        prod_name = prod[1]          # product_name
-        sold_qty = int(prod[4])      # product_number
-        sold_price = int(prod[5])    # jami sotilgan summa
+        prod_name = prod[1]        
+        sold_qty = int(prod[4])      
+        sold_price = int(prod[5])    
 
         for nak in nakladnoy:
             if nak[1] == prod_name:
-                original_price = int(nak[3])  # 1 dona original price
+                original_price = int(nak[3])  
                 cost_price = original_price * sold_qty
 
                 benefit = sold_price - cost_price
@@ -76,7 +69,7 @@ async def calculate_damage_for_add(product_name: str, qty: int = 1):
     if not naklad:
         return 0
 
-    cost_price = int(naklad[3])  # tannarx
+    cost_price = int(naklad[3])  
     return cost_price * qty
 
 
@@ -93,19 +86,14 @@ def generate_accounting_pdf(user, file_path):
     c = canvas.Canvas(file_path, pagesize=A4)
     width, height = A4
 
-    # ------------------------
-    # Fon va sarlavha
-    # ------------------------
-    c.setFillColor(colors.HexColor("#1F4E78"))  # Chiroyli ko'k rang
+    c.setFillColor(colors.HexColor("#1F4E78")) 
     c.rect(0, height-60, width, 60, fill=True, stroke=False)
 
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 20)
     c.drawString(50, height - 45, "📄 Buxgalteriya Hisoboti")
 
-    # ------------------------
-    # Foydalanuvchi ma'lumotlari
-    # ------------------------
+    
     c.setFillColor(colors.black)
     c.setFont("Helvetica-Bold", 14)
     y = height - 100
@@ -126,22 +114,20 @@ def generate_accounting_pdf(user, file_path):
     c.drawString(70, y, f"Sana : {now_tashkent().strftime('%Y-%m-%d %H:%M:%S')}")
     y -= line_height
 
-    # Chiziq bilan bo'lim ajratish
+    
     c.setStrokeColor(colors.HexColor("#1F4E78"))
     c.setLineWidth(1)
     c.line(50, y, width-50, y)
     y -= line_height
 
-    # ------------------------
-    # Hisobot bo‘limi
-    # ------------------------
+
     c.setFont("Helvetica-Bold", 14)
     c.drawString(50, y, "Hisobot ma'lumotlari:")
     y -= line_height
 
     c.setFont("Helvetica", 12)
 
-    # Bazadan kelayotgan qiymatlar string bo'lishi mumkin
+
     def safe_int(val):
         try:
             return int(val)
@@ -178,9 +164,7 @@ def generate_accounting_pdf(user, file_path):
     c.drawString(70, y, f"Kunduzgi stavka: {day_rate:,} so'm")
     y -= line_height
 
-    # ------------------------
-    # Footer
-    # ------------------------
+
     c.setFont("Helvetica-Oblique", 10)
     c.setFillColor(colors.gray)
     c.drawString(50, 30, "Hisobot Premium Billiard tizimi tomonidan tayyorlandi")

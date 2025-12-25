@@ -33,28 +33,26 @@ async def choose_table(message: types.Message, state: FSMContext):
 )
 async def add_product_to_sell(call: types.CallbackQuery, state: FSMContext):
     product_name = call.data.replace("sellprod_", "")
-
-    # Foydalanuvchining hozirgi sotilgan mahsulotlarini olish
     data = await state.get_data()
     sold_products = data.get("sold_products", {})
 
-    # Bazadan mahsulot holatini olish
+
     naklad = await db.select_nakladnoy(product_name=product_name)
     if not naklad:
         return await call.answer("❌ Mahsulot topilmadi", show_alert=True)
 
-    available_qty = naklad[3]  # Ombordagi mavjud soni
+    available_qty = naklad[3] 
     current_qty_sold = sold_products.get(product_name, 0)
 
-    # Agar foydalanuvchi ombordagi mavjud mahsulotdan ko‘p qo‘shmoqchi bo‘lsa
+
     if current_qty_sold + 1 > available_qty:
         return await call.answer(f"❌ Omborda faqat {available_qty} ta mavjud", show_alert=True)
 
-    # ➕ 1 dona qo‘shish
+
     sold_products[product_name] = current_qty_sold + 1
     await state.update_data(sold_products=sold_products)
 
-    # 🔄 Inline keyboardni yangilash
+
     products = await db.select_all_nakladnoy()
     new_markup = sell_nakladnoy_keyboard(products, sold_products)
     
@@ -76,7 +74,6 @@ async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
     telegram_id = call.from_user.id
     
 
-    # ❌ BEKOR QILISH
     if call.data == "cancel_sell":
         await state.finish()
         await call.message.delete()
@@ -84,7 +81,7 @@ async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
         await mainstate.menu.set()
         return
 
-    # ✅ SOTISHNI YAKUNLASH
+
     data = await state.get_data()
     sold_products = data.get("sold_products", {})
 
@@ -99,12 +96,12 @@ async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
 
     old_product_price = int(user[5])
     old_all_price = int(user[6])
-    old_benefit = int(user[9])   # ⚠️ benefit ustuni bor deb hisoblaymiz
+    old_benefit = int(user[9])  
 
     total_sum = 0
     text = "🧾 <b>CHEK</b>\n\n"
 
-    # 🟨 SOTUV
+
     for name, qty in sold_products.items():
         naklad = await db.select_nakladnoy(product_name=name)
         sell_price = int(naklad[4])
@@ -124,15 +121,15 @@ async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
 
         text += f"• {name} x{qty} = {summa} so‘m\n"
 
-    # 🧮 FOYDA HISOBI
+
     benefit = calculate_benefit_sell(sold_products, nakladnoy)
 
-    # 🧾 YANGI SUMMALAR
+
     new_product_price = old_product_price + total_sum
     new_all_price = old_all_price + total_sum
     new_benefit = old_benefit + benefit
 
-    # 🟩 UPDATE
+
     await db.update_user_product(str(new_product_price), telegram_id)
     await db.update_user_all_price(str(new_all_price), telegram_id)
     await db.update_user_benefit(new_benefit, telegram_id)
@@ -141,9 +138,7 @@ async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
     damage = 0
     for name, qty1 in sold_products.items():
         for product in nakladnoy:
-            # product[1] → product_name deb faraz qilamiz
             if product[1] == name:
-                # product[3] → tannarx (damage uchun)
                 damage += int(product[3]) * int(qty1)
 
     await db.update_user_damage(damage, telegram_id)
