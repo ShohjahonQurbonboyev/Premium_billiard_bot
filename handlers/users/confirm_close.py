@@ -14,7 +14,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     if callback_query.data == "confirm":
 
         lines = callback_query.message.text.splitlines()
-        table_number = lines[0].split(" ")[0]  
+        table_number = lines[0].split(" ")[0]  # stol raqami
 
         
         table = await db.select_billiard(table_name=table_number)
