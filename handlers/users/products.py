@@ -18,71 +18,80 @@ async def choose_table(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=AddProductFSM.table)
 async def show_products(message: types.Message, state: FSMContext):
-    if not message.text.isnumeric():
-        return await message.reply("❌ Stol raqamini kiriting")
+    try:
 
-    await state.update_data(table=message.text)
+        if not message.text.isnumeric():
+            return await message.reply("❌ Stol raqamini kiriting")
 
-    products = await db.select_all_nakladnoy()
-    if not products:
-        return await message.answer("📦 Nakladnoy bo‘sh", reply_markup= back_markup)
-    
-    table = await db.select_billiard(table_name= message.text)
-    if table is None:
-        return await message.answer(f"{message.text} - stol bo'sh", reply_markup=back_markup)
+        await state.update_data(table=message.text)
 
-    await message.answer("Mahsulotlarni qoshish uchun", reply_markup=ReplyKeyboardRemove())
-    await message.answer(
-        "🛒 Mahsulotni tanlang (har bosish = 1 dona):",
-        reply_markup=nakladnoy_keyboard(products)
-    )
+        products = await db.select_all_nakladnoy()
+        if not products:
+            return await message.answer("📦 Nakladnoy bo‘sh", reply_markup= back_markup)
+        
+        table = await db.select_billiard(table_name= message.text)
+        if table is None:
+            return await message.answer(f"{message.text} - stol bo'sh", reply_markup=back_markup)
+
+        await message.answer("Mahsulotlarni qoshish uchun", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            "🛒 Mahsulotni tanlang (har bosish = 1 dona):",
+            reply_markup=nakladnoy_keyboard(products)
+        )
+    except Exception as ex:
+        await message.answer(ex)
+
 
 
 
 
 @dp.callback_query_handler(lambda c: c.data.startswith("addprod_") or c.data == "cancel_add", state=AddProductFSM.table)
 async def add_or_cancel_callback(call: types.CallbackQuery, state: FSMContext):
-    telegram_id = call.from_user.id
-    if call.data == "cancel_add":
-        try:
-            await call.message.delete()
-            await call.message.answer("mahsulot stoli olib tashlandi",reply_markup=main())
-            await mainstate.menu.set()
-        except Exception as e:
-            print(f"Xatolik: {e}")
-        await call.answer("Bekor qilindi ❌")
-        return
+    try:
+
+        telegram_id = call.from_user.id
+        if call.data == "cancel_add":
+            try:
+                await call.message.delete()
+                await call.message.answer("mahsulot stoli olib tashlandi",reply_markup=main())
+                await mainstate.menu.set()
+            except Exception as e:
+                print(f"Xatolik: {e}")
+            await call.answer("Bekor qilindi ❌")
+            return
 
 
-    product_name = call.data.replace("addprod_", "")
-    data = await state.get_data()
-    table = data["table"]
+        product_name = call.data.replace("addprod_", "")
+        data = await state.get_data()
+        table = data["table"]
 
-    naklad = await db.select_nakladnoy(product_name=product_name)
-    if not naklad or naklad[2] <= 0:
-        return await call.answer("❌ Mahsulot tugagan", show_alert=True)
+        naklad = await db.select_nakladnoy(product_name=product_name)
+        if not naklad or naklad[2] <= 0:
+            return await call.answer("❌ Mahsulot tugagan", show_alert=True)
 
-    sell_price = naklad[4]
+        sell_price = naklad[4]
 
-    product = await db.select_product(
-        table_name=table,
-        product_name=product_name
-    )
-
-
-    if product is None:
-        await db.add_product(
-            product_name=product_name,
+        product = await db.select_product(
             table_name=table,
-            waiting_person=None,
-            product_number="1",
-            product_price=str(sell_price)
+            product_name=product_name
         )
-    else:
-        await db.update_product_number(str(int(product[4]) + 1), product[0])
-        await db.update_product_price(str(int(product[5]) + sell_price), product[0])
-    
 
-    await db.update_nakladnoy_have(naklad[2] - 1, product_name)
 
-    await call.answer(f"➕ {product_name} qo‘shildi")
+        if product is None:
+            await db.add_product(
+                product_name=product_name,
+                table_name=table,
+                waiting_person=None,
+                product_number="1",
+                product_price=str(sell_price)
+            )
+        else:
+            await db.update_product_number(str(int(product[4]) + 1), product[0])
+            await db.update_product_price(str(int(product[5]) + sell_price), product[0])
+        
+
+        await db.update_nakladnoy_have(naklad[2] - 1, product_name)
+
+        await call.answer(f"➕ {product_name} qo‘shildi")
+    except Exception as ex:
+        await call.message.answer(ex)
