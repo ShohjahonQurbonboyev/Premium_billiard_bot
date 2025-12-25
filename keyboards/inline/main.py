@@ -85,3 +85,15 @@ def sell_nakladnoy_keyboard(products, sold_products=None):
     )
 
     return keyboard
+
+
+
+
+keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Xisobni yopish ✅", callback_data="confirm_send"),
+            InlineKeyboardButton(text="Bekor qilish ❌", callback_data="cancel_send")
+        ]
+    ]
+)
