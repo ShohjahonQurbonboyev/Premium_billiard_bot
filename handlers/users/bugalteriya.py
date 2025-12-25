@@ -39,7 +39,7 @@ async def confirm_send_pdf(callback_query: types.CallbackQuery):
         caption="📄 Hisobot"
     )
 
-    # Foydalanuvchini o'chirish, agar kerak bo'lsa
+
     await db.delete_users()
     
 
@@ -49,7 +49,7 @@ async def confirm_send_pdf(callback_query: types.CallbackQuery):
         if os.path.exists(file_path):
             os.remove(file_path)
     except PermissionError:
-        time.sleep(0.5)  # faylni o‘qish tugashini kutish
+        time.sleep(0.5)  
         os.remove(file_path)
 
 
