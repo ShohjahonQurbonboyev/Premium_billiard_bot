@@ -39,8 +39,3 @@ async def bot_start(message: types.Message, state: FSMContext):
 
 
 
-
-
-
-
-

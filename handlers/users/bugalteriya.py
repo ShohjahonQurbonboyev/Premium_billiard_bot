@@ -36,7 +36,7 @@ async def confirm_send_pdf(callback_query: types.CallbackQuery):
     await bot.send_document(
         chat_id=CHANNEL_ID,
         document=types.InputFile(file_path),
-        caption="📄 Hisobot"
+        caption="Diqqat:\nBu Buxgalteriya hisobotida soliq xarajatlari va boshqa harajatlar xisobga olinmagan."
     )
 
 
