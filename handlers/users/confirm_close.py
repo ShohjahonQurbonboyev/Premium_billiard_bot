@@ -80,7 +80,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
                 await db.delete_product(table_number, p[1])
 
 
-            txt = f"✅ Hisob yopildi\n"f"💵 Stol: {table_cost} so‘m\n"f"🕒 Xisoblangan vaqt: {int(playing_minutes)} min\n"f"🛒 Product: {product_cost} so‘m\n"f"📈 Productdan ko'rilgan foyda : {benefit} so'm\n"f"💰 Jami: {table_cost + product_cost} so‘m"
+            txt = f"✅ {table_number} - stol yopildi\n"f"💵 Stol: {table_cost} so‘m\n"f"🕒 Xisoblangan vaqt: {int(playing_minutes)} min\n"f"🛒 Product: {product_cost} so‘m\n"f"📈 Productdan ko'rilgan foyda : {benefit} so'm\n"f"💰 Jami: {table_cost + product_cost} so‘m"
             await callback_query.answer(txt, show_alert=True)
             await bot.send_message(chat_id=CHANNEL_ID, text=txt)
             await callback_query.message.delete()
