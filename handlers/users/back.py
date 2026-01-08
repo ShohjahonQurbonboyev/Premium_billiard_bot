@@ -1,7 +1,7 @@
 from aiogram import types
 from loader import dp
 from keyboards.default.main import main, back_markup
-from states.main import mainstate, process, AddProductFSM
+from states.main import mainstate, process, AddProductFSM, delete_nakladnoy
 from aiogram.dispatcher.storage import FSMContext
 
 
@@ -33,6 +33,12 @@ async def main_menu_redirect(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(text="🔙 Orqaga", state=AddProductFSM.table)
+async def main_menu_redirect(message: types.Message, state: FSMContext):
+    await message.answer("Siz asosiy menudasiz 🏠", reply_markup=main())
+    await mainstate.menu.set()
+
+
+@dp.message_handler(text="🔙 Orqaga", state=delete_nakladnoy.delete_nakladnoy_choose)
 async def main_menu_redirect(message: types.Message, state: FSMContext):
     await message.answer("Siz asosiy menudasiz 🏠", reply_markup=main())
     await mainstate.menu.set()

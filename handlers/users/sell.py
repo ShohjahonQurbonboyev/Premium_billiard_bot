@@ -31,10 +31,7 @@ async def choose_table(message: types.Message, state: FSMContext):
         await message.answer(ex)
 
 
-@dp.callback_query_handler(
-    lambda c: c.data.startswith("sellprod_"),
-    state=sell_product.sell
-)
+@dp.callback_query_handler(lambda c: c.data.startswith("sellprod_"), state=sell_product.sell)
 async def add_product_to_sell(call: types.CallbackQuery, state: FSMContext):
     try:
 
@@ -47,7 +44,7 @@ async def add_product_to_sell(call: types.CallbackQuery, state: FSMContext):
         if not naklad:
             return await call.answer("❌ Mahsulot topilmadi", show_alert=True)
 
-        available_qty = naklad[3] 
+        available_qty = naklad[2] 
         current_qty_sold = sold_products.get(product_name, 0)
 
 
@@ -75,10 +72,7 @@ async def add_product_to_sell(call: types.CallbackQuery, state: FSMContext):
 
 
 
-@dp.callback_query_handler(
-    lambda c: c.data in ["finish_sell", "cancel_sell"],
-    state=sell_product.sell
-)
+@dp.callback_query_handler(lambda c: c.data in ["finish_sell", "cancel_sell"], state=sell_product.sell)
 async def sell_finish_or_cancel(call: types.CallbackQuery, state: FSMContext):
     try:
 

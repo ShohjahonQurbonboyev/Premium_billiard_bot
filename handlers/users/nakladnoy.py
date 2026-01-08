@@ -1,10 +1,10 @@
 from aiogram import types
 from aiogram.types import ReplyKeyboardRemove
 from loader import dp, db
-from keyboards.default.main import main, back_markup
+from keyboards.default.main import main, back_markup, product_del_btns
 from keyboards.inline.main import delete_nakladnoy_keyboard
 from aiogram.dispatcher.storage import FSMContext
-from states.main import mainstate, process
+from states.main import mainstate, process, delete_nakladnoy
 
 
 
@@ -111,15 +111,113 @@ async def my_account(message: types.Message, state: FSMContext):
 
 @dp.message_handler(text="➖ Product O'chirish", state=mainstate.menu)
 async def delete_product_start(message: types.Message, state: FSMContext):
-    products = await db.select_all_nakladnoy()
-    if not products:
-        await message.answer("📦 Omborda hech qanday mahsulot yo‘q!")
+    await message.answer("Product o'chirish tartibini tanlang ?", reply_markup= product_del_btns())
+    await delete_nakladnoy.delete_nakladnoy_choose.set()
+
+
+
+@dp.message_handler(text="Son bilan olib tashlash", state=delete_nakladnoy.delete_nakladnoy_choose)
+async def delete_by_amount_start(message: types.Message, state: FSMContext):
+    try:
+        products = await db.select_all_nakladnoy()
+
+        if not products:
+            await message.answer("📦 Omborda mahsulot yo‘q!")
+            return
+        await message.answer("Pastdan", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            "Qaysi mahsulotdan olib tashlaysiz?",
+            reply_markup=delete_nakladnoy_keyboard(products)
+        )
+
+        await delete_nakladnoy.choose_product.set()
+    except Exception as ex:
+        await message.answer(ex)
+
+
+
+@dp.callback_query_handler(
+    lambda c: c.data.startswith("deleteprod_"),
+    state=delete_nakladnoy.choose_product
+)
+async def choose_product_for_amount(call: types.CallbackQuery, state: FSMContext):
+    product_name = call.data.replace("deleteprod_", "")
+    product = await db.select_nakladnoy(product_name=product_name)
+
+    if not product:
+        await call.message.answer("Mahsulot topilmadi ❌")
         return
-    await message.answer("Pastdan", reply_markup=ReplyKeyboardRemove())
-    await message.answer(
-        "O‘chirmoqchi bo‘lgan mahsulotni tanlang:",
-        reply_markup= delete_nakladnoy_keyboard(products)
+
+    await state.update_data(product_name=product_name)
+    
+    await call.message.answer(
+        f"📦 {product_name}\n"
+        f"Omborda: {product[2]} ta\n\n"
+        f"Nechta olib tashlaysiz?"
     )
+    await delete_nakladnoy.input_amount.set()
+
+
+@dp.message_handler(state=delete_nakladnoy.input_amount)
+async def remove_amount(message: types.Message, state: FSMContext):
+    if not message.text.isnumeric():
+        await message.answer("❗️ Iltimos, son kiriting")
+        return
+
+    remove_count = int(message.text)
+    data = await state.get_data()
+    product_name = data["product_name"]
+
+    product = await db.select_nakladnoy(product_name=product_name)
+    have = int(product[2])
+
+    if remove_count > have:
+        await message.answer(
+            f"❌ Omborda buncha yo‘q!\n"
+            f"Mavjud: {have} ta"
+        )
+        return
+
+    new_have = have - remove_count
+
+    if new_have == 0:
+        await db.delete_nakladnoy(product_name)
+        await message.answer(
+            f"🗑 {product_name} ombordan to‘liq olib tashlandi",
+            reply_markup=main()
+        )
+    else:
+        # SENING FUNKSIYANG ISHLATILYAPTI 👇
+        await db.update_nakladnoy_have(new_have, product_name)
+
+        await message.answer(
+            f"✅ {product_name} dan {remove_count} ta olib tashlandi\n"
+            f"📦 Qoldi: {new_have} ta",
+            reply_markup=main()
+        )
+
+    await mainstate.menu.set()
+
+
+
+
+
+
+@dp.message_handler(text="Productni olib tashlash", state=delete_nakladnoy.delete_nakladnoy_choose)
+async def delete_product_name(message: types.Message, state: FSMContext):
+    try:
+
+        products = await db.select_all_nakladnoy()
+        if not products:
+            await message.answer("📦 Omborda hech qanday mahsulot yo‘q!")
+            return
+        await message.answer("Pastdan", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            "O‘chirmoqchi bo‘lgan mahsulotni tanlang:",
+            reply_markup= delete_nakladnoy_keyboard(products)
+        )
+    except Exception as ex:
+        await message.answer(ex)
 
     
 @dp.callback_query_handler(lambda c: c.data.startswith("deleteprod_") or c.data=="cancel_delete", state="*")
@@ -135,5 +233,6 @@ async def delete_product_callback(call: types.CallbackQuery):
         await db.delete_nakladnoy(product_name)
         await call.message.answer(f"{product_name} o‘chirildi ❌", reply_markup=main())
         await call.message.edit_text(f"{product_name} ombordan o‘chirildi ❌")
+        await mainstate.menu.set()
     except Exception as ex:
         await call.message.answer(ex)

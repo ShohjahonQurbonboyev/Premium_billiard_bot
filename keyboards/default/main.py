@@ -32,3 +32,13 @@ def product():
 
     return markup
     
+
+
+def product_del_btns():
+    buttons = ["Productni olib tashlash", "Son bilan olib tashlash"]
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    for button in buttons:
+        markup.insert(KeyboardButton(button))
+    markup.add(KeyboardButton(back_btn))
+    
+    return markup

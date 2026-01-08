@@ -21,8 +21,14 @@ class process(StatesGroup):
     
 
 class delete_nakladnoy(StatesGroup):
+    delete_nakladnoy_choose = State()
+    choose_product = State()
+    input_amount = State()
     delete = State()
 
 
 class sell_product(StatesGroup):
     sell = State()
+
+
+
